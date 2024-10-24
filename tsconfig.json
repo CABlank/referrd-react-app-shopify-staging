@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "types": ["jest"],
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src", "next-env.d.ts", ".next/types/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts", // Exclude .test.ts files
+    "**/*.test.tsx", // Exclude .test.tsx files
+    "**/*.spec.ts", // Exclude .spec.ts files (if any)
+    "**/*.spec.tsx", // Exclude .spec.tsx files (if any)
+    "**/__tests__/**", // Exclude any files in the __tests__ directory
+    "**/__mocks__/**" // Optionally exclude mock files, if any
+  ]
+}
