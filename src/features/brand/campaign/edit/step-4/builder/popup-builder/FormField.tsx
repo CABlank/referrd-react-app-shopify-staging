@@ -16,6 +16,7 @@ const FormField: React.FC<FormFieldProps> = ({
   onChange,
   options,
   onBatchChange,
+  disabled,
 }) => {
   const isMeasurementField = ["imageWidth", "imageHeight", "borderRadius"].includes(name);
 
@@ -28,6 +29,7 @@ const FormField: React.FC<FormFieldProps> = ({
           value={value as string}
           onChange={onChange}
           options={options || []}
+          disabled={disabled}
         />
       );
     case "color":
@@ -41,6 +43,7 @@ const FormField: React.FC<FormFieldProps> = ({
           type={type}
           value={typeof value === "object" ? value : {}}
           onChange={onBatchChange!}
+          disabled={disabled}
         />
       );
     case "number":
@@ -50,6 +53,7 @@ const FormField: React.FC<FormFieldProps> = ({
           name={name}
           value={typeof value === "number" ? value : parseInt(value as string, 10)}
           onChange={onChange}
+          disabled={disabled}
           type={""}
         />
       );
@@ -60,6 +64,7 @@ const FormField: React.FC<FormFieldProps> = ({
           name={name}
           value={value as string}
           onChange={onChange}
+          disabled={disabled}
           type={""}
         />
       );
@@ -71,6 +76,7 @@ const FormField: React.FC<FormFieldProps> = ({
           type={type}
           value={value as string}
           onChange={onChange}
+          disabled={disabled}
           isMeasurement={isMeasurementField}
         />
       );
@@ -82,6 +88,7 @@ const FormField: React.FC<FormFieldProps> = ({
           type={type}
           value={value as string}
           onChange={onChange}
+          disabled={disabled}
           isMeasurement={isMeasurementField}
         />
       );

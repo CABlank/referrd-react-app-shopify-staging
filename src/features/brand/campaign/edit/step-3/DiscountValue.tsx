@@ -10,6 +10,7 @@ interface DiscountValueProps {
       | { target: { name: string; value: any } }
   ) => void;
   accessToken: string;
+  disabled: boolean;
 }
 
 const DiscountValue: React.FC<DiscountValueProps> = ({
@@ -17,6 +18,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
   className,
   handleChange,
   accessToken,
+  disabled,
 }) => {
   const [resourceType, setResourceType] = useState<string>("product");
   const [selectedResources, setSelectedResources] = useState<any[]>([]);
@@ -99,6 +101,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
                   },
                 });
               }}
+              disabled={disabled}
             />
             <span className="ml-2">Allow Discounts</span>
           </label>
@@ -115,6 +118,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
                 value={discount.type || ""}
                 className="w-full h-10 px-4 py-2 border border-gray-300 bg-white text-gray-700"
                 onChange={handleChange}
+                disabled={disabled}
               >
                 <option value="fixed">Fixed amount</option>
                 <option value="percentage">Percentage</option>
@@ -134,6 +138,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
                   placeholder="Enter discount value"
                   className="flex-1 px-2 py-2 bg-transparent text-gray-700 border-0 focus:outline-none"
                   onChange={handleChange}
+                  disabled={disabled}
                 />
               </div>
             </div>
@@ -157,6 +162,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
                       : ""
                 );
               }}
+              disabled={disabled}
             >
               <option value="all_products">All products</option>
               <option value="specific_collections">Specific collections</option>
@@ -177,6 +183,7 @@ const DiscountValue: React.FC<DiscountValueProps> = ({
                   selectedResources={selectedResources}
                   accessToken={accessToken}
                   appliesTo={appliesToValue}
+                  disabled={disabled}
                 />
               </div>
             </div>

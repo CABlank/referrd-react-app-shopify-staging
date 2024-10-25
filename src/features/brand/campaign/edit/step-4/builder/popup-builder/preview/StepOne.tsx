@@ -20,6 +20,7 @@ interface StepOneProps {
   view: "desktop" | "mobile";
   setUrl: React.Dispatch<React.SetStateAction<string>>;
   setStep: React.Dispatch<React.SetStateAction<number>>;
+  disabled: boolean; 
 }
 
 // Helper function to create the button element
@@ -74,6 +75,7 @@ const StepOne: React.FC<StepOneProps> = ({
   view,
   setUrl,
   setStep,
+  disabled,
 }) => {
   const initialRender = useRef(true);
 
@@ -110,6 +112,7 @@ const StepOne: React.FC<StepOneProps> = ({
           width: "100%",
           gap: "8px",
           position: "relative",
+          cursor: disabled ? "not-allowed" : "default",
         }}
       >
         {elements
@@ -119,12 +122,12 @@ const StepOne: React.FC<StepOneProps> = ({
               key={element.id}
               index={index}
               element={element}
-              moveElement={moveElement}
+              moveElement={disabled ? () => {} : moveElement}
               elementWidth={elementWidth}
               hoverIndex={hoverIndex}
-              onRemove={onRemove}
-              showRemoveButton={false}
-              enableDragAndDrop={true}
+              onRemove={disabled ? () => {} : onRemove}
+              showRemoveButton={!disabled}
+              enableDragAndDrop={true} //enableDragAndDrop={!disabled}
               view={"desktop"}
               expandedId={undefined}
               onExpand={function (id: string): void {
@@ -138,7 +141,7 @@ const StepOne: React.FC<StepOneProps> = ({
               }}
             />
           ))}
-        {hoverIndex === elements.length && (
+        {hoverIndex === elements.length && !disabled  && (
           <div
             style={{
               width: elementWidth,

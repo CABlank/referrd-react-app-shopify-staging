@@ -62,11 +62,11 @@ const CampaignHeader: React.FC<CampaignHeaderProps> = ({
       </div>
 
       {/* Save button */}
-      <SaveButton
+      {/* <SaveButton
         saving={saving}
         handleSaveChanges={handleSaveChanges}
         disabled={isSaveDisabled} // Pass the disabled status to SaveButton
-      />
+      /> */}
     </div>
   );
 };

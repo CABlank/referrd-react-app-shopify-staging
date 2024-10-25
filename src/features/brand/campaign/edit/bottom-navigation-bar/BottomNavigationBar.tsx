@@ -5,12 +5,12 @@ interface BottomNavigationBarProps {
   totalSteps: number;
   onNext: () => void;
   onPrevious: () => void;
-  onClose: () => void;
   onSaveDraft: () => void; // Function to handle save draft
   onPublish: () => void; // Function to handle publishing
   isNextDisabled: boolean;
   isPreviousDisabled: boolean;
   isVerifying: boolean;
+  step1Data: { [key: string]: string };
 }
 
 const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
@@ -18,23 +18,55 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
   totalSteps,
   onNext,
   onPrevious,
-  onClose,
   onSaveDraft,
   onPublish,
   isNextDisabled,
   isPreviousDisabled,
   isVerifying,
+  step1Data,
 }) => {
   const [isVisible, setIsVisible] = useState(true); // Control visibility of the bottom bar
   const [currentSubStep, setCurrentSubStep] = useState(1);
   const [subStepMode, setSubStepMode] = useState<"basic" | "advanced">("basic");
   const [hasSidebar, setHasSidebar] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [step1Completed, setStep1Completed] = useState(false); // Track if Step 1 is completed
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Check if the sidebar exists in the DOM
     const sidebarExists = document.getElementById("sidebar-desktop") !== null;
     setHasSidebar(sidebarExists);
+
+    // Function to detect if the screen size is mobile
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1023); 
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize); // Listen for window resize
+
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Validate Step 1 when data changes
+  useEffect(() => {
+    validateStep1();
+  }, [step1Data]); // Run validation every time step1Data changes
+
+
+  const validateStep1 = () => {
+    const requiredFields = ["campaignName", "startDate", "endDate"];
+    for (const field of requiredFields) {
+      if (!step1Data[field]) {
+        setErrorMessage(`Please fill out the ${field} field.`);
+        setStep1Completed(false); // Step 1 is not completed
+        return;
+      }
+    }
+    setErrorMessage(""); // Clear error if valid
+    setStep1Completed(true); // Step 1 is completed and validated
+  };
 
   // Function to update the subStepMode based on the selected format
   const updateSubStepMode = () => {
@@ -46,6 +78,8 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
       setSubStepMode("basic");
     }
   };
+
+  
 
   // Use MutationObserver to watch for changes in the data-selected-format attribute
   useEffect(() => {
@@ -96,15 +130,30 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
         ((currentStep - 1) / totalSteps) * 100
       : (currentStep / totalSteps) * 100;
 
+
+  
+
   // Handle Next button click
   const handleNext = () => {
-    if (currentStep === 4 && currentSubStep < totalSubSteps) {
-      setCurrentSubStep(currentSubStep + 1);
+    if (currentStep === 1 && !step1Completed) {
+      validateStep1();
+      if (step1Completed) {
+        onNext(); // Move to Step 2
+      }
+    } else if (currentStep === 4) {
+      // Step 4 - Handle substeps
+      if (currentSubStep < totalSubSteps) {
+        setCurrentSubStep((prevSubStep) => prevSubStep + 1);
+      } else {
+        // If all substeps are complete, move to Step 5
+        onNext();
+      }
     } else {
       onNext();
-      setCurrentSubStep(1);
     }
   };
+
+
 
   // Handle Previous button click
   const handlePrevious = () => {
@@ -113,12 +162,6 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     } else {
       onPrevious();
     }
-  };
-
-  // Handle Close button click to hide the bottom bar
-  const handleClose = () => {
-    setIsVisible(false);
-    onClose();
   };
 
   // If the bar is hidden, don't render it
@@ -130,16 +173,11 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({
     <div
       style={{
         ...styles.fixedBar,
-        left: hasSidebar ? "240px" : "0",
-        width: hasSidebar ? "calc(100% - 240px)" : "100%",
+        left: hasSidebar && !isMobile ? "240px" : "0", // Adjust for sidebar if it's desktop
+        width: hasSidebar && !isMobile ? "calc(100% - 240px)" : "100%", // Adjust width
       }}
     >
       <div style={styles.container}>
-        {/* Left Side: Close Button */}
-        <button onClick={handleClose} style={styles.closeButton}>
-          Close
-        </button>
-
         {/* Center: Step Message and Progress Bar */}
         <div style={styles.centerContent}>
           <div style={styles.stepMessage}>{currentStepMessage}</div>
@@ -243,14 +281,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-  },
-  closeButton: {
-    backgroundColor: "#f8f9fa", // Light gray for Close button
-    color: "#333", // Dark text
-    padding: "12px 24px",
-    borderRadius: "8px",
-    border: "1px solid #ccc", // Border for Close button
-    cursor: "pointer",
   },
   button: {
     padding: "12px 24px",

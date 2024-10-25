@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import StripeWrapper from "./StripeWrapper";
 import PaymentForm from "./PaymentForm";
 import Spinner from "../../../../../components/common/Spinner";
@@ -10,6 +10,10 @@ interface CampaignPaymentProps {
   campaignId: number;
   token: string;
   onPaymentSuccess: () => void;
+  isDisabled?: boolean;
+  setErrorState: (hasError: boolean) => void;
+  setAmountConfirmedParent: (confirmed: boolean) => void;
+  setPaymentCompletedParent: (completed: boolean) => void;
 }
 
 const CampaignPayment: React.FC<CampaignPaymentProps> = ({
@@ -17,6 +21,10 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
   campaignId,
   token,
   onPaymentSuccess,
+  isDisabled,
+  setErrorState,
+  setAmountConfirmedParent,
+  setPaymentCompletedParent,
 }) => {
   const [loading, setLoading] = useState(false); // General loading state
   const [clientSecret, setClientSecret] = useState<string | null>(null); // Stripe clientSecret
@@ -26,13 +34,29 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
   const [amountConfirmed, setAmountConfirmed] = useState(false); // Track if amount is confirmed
   const [error, setError] = useState<string | null>(null); // Track errors
 
+  useEffect(() => {
+    setErrorState(!!error); // Update parent state when error changes
+  }, [error, setErrorState]);
+
+  useEffect(() => {
+    setAmountConfirmedParent(amountConfirmed); // Inform parent when amount is confirmed
+  }, [amountConfirmed, setAmountConfirmedParent]);
+
+  useEffect(() => {
+    setPaymentCompletedParent(paymentSuccess); // Inform parent when payment is completed
+  }, [paymentSuccess, setPaymentCompletedParent]);
+
   // Handle input change for the payment amount
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewAmount(parseFloat(e.target.value) || 0); // Update the payment amount
+    if (!isDisabled) {
+      setNewAmount(parseFloat(e.target.value) || 0); // Update the payment amount
+    }
   };
 
   // Handle the "Confirm Amount" button click
   const handleConfirmAmount = async () => {
+    if (isDisabled) return;
+
     if (newAmount <= 0) {
       setError("Please enter a valid payment amount");
       return;
@@ -87,16 +111,20 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
 
   // Handle editing the payment amount
   const handleEditAmount = () => {
-    setAmountConfirmed(false); // Allow re-confirmation of the amount
-    setClientSecret(null); // Reset payment form until new amount is confirmed
+    if (!isDisabled) {
+      setAmountConfirmed(false); // Allow re-confirmation of the amount
+      setClientSecret(null); // Reset payment form until new amount is confirmed
+    }
   };
 
   // Allow the user to make another payment
   const handleMakeAnotherPayment = () => {
-    setPaymentSuccess(false); // Reset payment success
-    setClientSecret(null); // Reset clientSecret to show the input form again
-    setNewAmount(100); // Reset the amount input field
-    setAmountConfirmed(false); // Allow re-confirmation of the amount
+    if (!isDisabled) {
+      setPaymentSuccess(false); // Reset payment success
+      setClientSecret(null); // Reset clientSecret to show the input form again
+      setNewAmount(100); // Reset the amount input field
+      setAmountConfirmed(false); // Allow re-confirmation of the amount
+    }
   };
 
   return (
@@ -117,6 +145,7 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
             <button
               onClick={handleMakeAnotherPayment}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              disabled={isDisabled}
             >
               Make Another Payment
             </button>
@@ -137,14 +166,14 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
                     onChange={handleAmountChange} // Update state on change
                     className="mt-1 block w-full p-2 border rounded"
                     min="1"
-                    disabled={confirming} // Disable while confirming
+                    disabled={confirming || loading || isDisabled} // Disable while confirming
                   />
 
                   {/* Confirm Amount button */}
                   <button
                     onClick={handleConfirmAmount}
                     className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    disabled={confirming || loading} // Disable during confirm or loading
+                    disabled={confirming || loading || isDisabled} // Disable during confirm or loading
                   >
                     {confirming ? "Confirming..." : "Confirm Amount"}
                   </button>
@@ -161,6 +190,7 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
                   <button
                     onClick={handleEditAmount}
                     className="px-2 py-2 bg-gray-200 hover:bg-gray-300 rounded"
+                    disabled={isDisabled}
                   >
                     <EditIcon /> {/* Assuming EditIcon is properly imported */}
                   </button>
@@ -182,7 +212,7 @@ const CampaignPayment: React.FC<CampaignPaymentProps> = ({
                       amountFunded={newAmount} // Pass the confirmed amount
                       oldAmount={amountFunded}
                       onSuccess={handlePaymentSuccess}
-                      disabled={false}
+                      disabled={isDisabled}
                     />
                   </StripeWrapper>
                 </div>

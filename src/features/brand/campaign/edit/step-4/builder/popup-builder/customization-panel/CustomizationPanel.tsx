@@ -20,6 +20,7 @@ interface CustomizationPanelProps {
   onRemove: (elementId: string) => void;
   imageRecentlyAdded: boolean;
   setImageRecentlyAdded: (value: boolean) => void;
+  disabled: boolean
 }
 
 const defaultTextProps: Partial<TextElementProps> = {
@@ -97,6 +98,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
   onRemove,
   imageRecentlyAdded,
   setImageRecentlyAdded,
+  disabled,
 }) => {
   const [openElementId, setOpenElementId] = useState<string | null>(null);
 
@@ -137,6 +139,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     element: ElementProps
   ) => {
+    if (disabled) return; // Disable the function if the panel is disabled
     if (!e.target || !e.target.name) {
       console.error("Event target or target name is undefined", e);
       return;
@@ -161,12 +164,13 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
   };
 
   const handleBatchChange = (updatedValues: { [key: string]: string }, element: ElementProps) => {
+    if (disabled) return; 
     const updatedElement = { ...element, ...updatedValues };
     onUpdate(updatedElement);
   };
 
   const handleImageChange = (file: File | null, element: ElementProps) => {
-    if (file) {
+    if (disabled || !file) return; 
       const reader = new FileReader();
       reader.onloadend = () => {
         if (element.type === "image") {
@@ -174,17 +178,18 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
         }
       };
       reader.readAsDataURL(file);
-    }
+    
   };
 
   const handleRemoveImage = (element: ElementProps) => {
-    if (element.type === "image") {
+    if (disabled || element.type !== "image") return;
       onUpdate({ ...element, imageUrl: "" }); // Correct property name
-    }
   };
 
   const toggleElement = (elementId: string) => {
-    setOpenElementId(openElementId === elementId ? null : elementId);
+    if (!disabled) {
+      setOpenElementId(openElementId === elementId ? null : elementId);
+    }
   };
 
   const getFieldValue = (element: ElementProps, field: string) => {
@@ -223,7 +228,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
           return null;
         }
         return (
-          <div key={element.id} className="mt-4">
+          <div key={element.id} className={`mt-4 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}>
             <div
               className="flex justify-between items-center cursor-pointer p-2 bg-white mb-4"
               onClick={() => toggleElement(element.id)}
@@ -240,7 +245,9 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                     className="text-red-500 flex items-center ml-2"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRemove(element.id);
+                      if (!disabled) {
+                        onRemove(element.id);
+                      }
                     }}
                   >
                     <TrashIcon />
@@ -262,6 +269,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                       imageUrl={(element as ImageElementProps).imageUrl || ""}
                       onImageChange={(file) => handleImageChange(file, element)}
                       onRemoveImage={() => handleRemoveImage(element)}
+                      disabled={disabled}
                     />
                   </div>
                 ) : null}
@@ -290,6 +298,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                           : undefined
                       }
                       options={"options" in field ? field.options : undefined}
+                      disabled={disabled}
                     />
                   );
                 })}

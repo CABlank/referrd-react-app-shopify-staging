@@ -14,6 +14,7 @@ interface CampaignInformationProps {
   ) => void; // Allow custom event type along with regular ChangeEvent
   currentStep: number;
   onValidationStatus: (isValid: boolean) => void;
+  isDisabled: boolean;
 }
 
 const CampaignInformation: React.FC<CampaignInformationProps> = ({
@@ -23,6 +24,7 @@ const CampaignInformation: React.FC<CampaignInformationProps> = ({
   handleChange,
   currentStep, // Track the current step
   onValidationStatus,
+  isDisabled,
 }) => {
   // Create refs for each section
   const campaignDetailRef = useRef<HTMLDivElement>(null);
@@ -134,6 +136,7 @@ const CampaignInformation: React.FC<CampaignInformationProps> = ({
               campaign={campaignData}
               handleChange={handleChange}
               className="bg-white p-0 border-0 shadow-none"
+              isDisabled={currentStep > 1}
             />
           </div>
           <div className="w-full md:w-[1px] bg-gray-200" />
@@ -143,6 +146,7 @@ const CampaignInformation: React.FC<CampaignInformationProps> = ({
               campaign={campaignData}
               handleChange={handleChange}
               className="bg-white p-0 border-0 shadow-none"
+              isDisabled={currentStep > 2}
             />
           </div>
         </div>

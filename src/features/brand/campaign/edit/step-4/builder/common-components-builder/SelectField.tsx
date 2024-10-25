@@ -9,6 +9,7 @@ interface SelectFieldProps {
   options: string[];
   iconWidth?: number;
   iconHeight?: number;
+  disabled?: boolean;
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -19,6 +20,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   options,
   iconWidth = 15,
   iconHeight = 15,
+  disabled= false, // Add default value for disabled
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -29,7 +31,9 @@ const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <div className="flex justify-between items-center w-full my-4">
       <p className="text-sm font-medium text-left text-black/50">{label}</p>
-      <div className="flex items-center w-[140px] h-9 px-3 rounded-lg bg-white border border-black/30 relative">
+      <div className={`flex items-center w-[140px] h-9 px-3 rounded-lg bg-white border border-black/30 relative ${
+          disabled ? "bg-gray-100 cursor-not-allowed opacity-50" : "bg-white"
+        }`}>
         <select
           name={name}
           value={value}
@@ -37,6 +41,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
           onClick={handleSelectClick}
           onBlur={() => setIsOpen(false)}
           className="block w-full appearance-none bg-white border-none text-sm text-left text-black/70 outline-none h-full pr-10"
+          disabled={disabled}
         >
           {options.map((option) => (
             <option key={option} value={option}>

@@ -4,8 +4,8 @@ const CampaignDetail: React.FC<{
   campaign: any;
   className?: string;
   handleChange: any;
-}> = ({ campaign, className, handleChange }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  isDisabled: boolean;
+}> = ({ campaign, className, handleChange, isDisabled }) => {
 
   return (
     <div
@@ -27,6 +27,7 @@ const CampaignDetail: React.FC<{
             placeholder="Campaign name"
             className="w-full form-input px-4 py-2 border border-gray-300 rounded-md"
             onChange={handleChange}
+            disabled={isDisabled}
           />
         </div>
 
@@ -41,6 +42,7 @@ const CampaignDetail: React.FC<{
               value={campaign.startDate}
               className="w-full px-4 py-2 border border-gray-300 rounded-md"
               onChange={handleChange}
+              disabled={isDisabled}
             />
           </div>
           <div className="space-y-4">
@@ -53,6 +55,7 @@ const CampaignDetail: React.FC<{
               value={campaign.closeDate}
               className="w-full px-4 py-2 border border-gray-300 rounded-md"
               onChange={handleChange}
+              disabled={isDisabled}
             />
           </div>
         </div>

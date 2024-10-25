@@ -1,9 +1,9 @@
 import "dotenv/config";
 
 import "@shopify/shopify-api/adapters/node";
-import setupCheck from "./dist/utils/setup/setupValidator.js";
+/* import setupCheck from "./dist/utils/setup/setupValidator.js";
 
-setupCheck();
+setupCheck(); */
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

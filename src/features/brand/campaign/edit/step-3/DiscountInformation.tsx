@@ -9,7 +9,9 @@ interface DiscountInformationProps {
       | { target: { name: string; value: any } }
   ) => void;
   accessToken: string;
+  currentStep: number;
   onValidationStatus: (isValid: boolean) => void;
+  isDisabled: boolean;
 }
 
 const DiscountInformation: React.FC<DiscountInformationProps> = ({
@@ -17,6 +19,8 @@ const DiscountInformation: React.FC<DiscountInformationProps> = ({
   handleChange,
   accessToken,
   onValidationStatus,
+  currentStep,
+  isDisabled,
 }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -28,11 +32,18 @@ const DiscountInformation: React.FC<DiscountInformationProps> = ({
       if (!campaignData.discountType || campaignData.discountType === "Select one") {
         newErrors.discountType = "Discount Type is required.";
       }
-      if (!campaignData.discountValue || campaignData.discountValue <= 0) {
+      
+      // Validate that the discount value is a positive number
+      if (
+        !campaignData.discountValue || 
+        campaignData.discountValue <= 0 ||
+        isNaN(campaignData.discountValue)  // Validate that the discount value is a number
+      ) {
         newErrors.discountValue = "Discount Value must be a positive number.";
       }
-      if (!campaignData.appliesTo || campaignData.appliesTo.length === 0) {
-        newErrors.appliesTo = "You must specify what the discount applies to.";
+
+      if (!campaignData.appliesTo || campaignData.appliesTo.length === 0) { //I comment this line because there is a default value in the select.
+        /* newErrors.appliesTo = "You must specify what the discount applies to."; */
       }
     }
 
@@ -66,6 +77,7 @@ const DiscountInformation: React.FC<DiscountInformationProps> = ({
         accessToken={accessToken}
         className="bg-white p-0 border-0 shadow-none"
         handleChange={handleChange}
+        disabled={isDisabled}
       />
     </div>
   );

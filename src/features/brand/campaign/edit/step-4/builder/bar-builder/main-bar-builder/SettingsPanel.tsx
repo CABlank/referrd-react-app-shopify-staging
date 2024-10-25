@@ -35,6 +35,7 @@ interface SettingsPanelProps {
   setDesktopConfigStep2: React.Dispatch<React.SetStateAction<TopBarConfig>>;
   setMobileConfigStep1: React.Dispatch<React.SetStateAction<TopBarConfig>>;
   setMobileConfigStep2: React.Dispatch<React.SetStateAction<TopBarConfig>>;
+  disabled: boolean;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -47,6 +48,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   setDesktopConfigStep2,
   setMobileConfigStep1,
   setMobileConfigStep2,
+  disabled,
 }) => {
   const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { value } = e.target;
@@ -122,12 +124,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             onChange={handleHeightChange}
             isMeasurement={true}
             style={{}}
+            disabled={disabled}
           />
           <ColorField
             label="Background Color"
             name="backgroundColor"
             value={config.backgroundColor}
             onChange={(e) => handleConfigChange(e)}
+            disabled={disabled}
           />
         </div>
       )}

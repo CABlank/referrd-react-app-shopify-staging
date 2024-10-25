@@ -6,6 +6,7 @@ interface SpacingFieldProps {
   type: "margin" | "padding";
   value: { [key: string]: string };
   onChange: (updatedValues: { [key: string]: string }) => void;
+  disabled?: boolean;
 }
 
 const spacingValues = {
@@ -57,11 +58,13 @@ const SpacingField: React.FC<SpacingFieldProps> = ({
   type,
   value,
   onChange,
+  disabled = false, // Default value is false
 }) => {
   const [selectedSize, setSelectedSize] =
     useState<keyof typeof spacingValues.margin>("L");
 
   const handleSizeChange = (size: keyof typeof spacingValues.margin) => {
+    if (disabled) return; //If disabled, don't do anything
     setSelectedSize(size);
     const newValue = spacingValues[type][size];
     onChange(newValue);
@@ -83,7 +86,7 @@ const SpacingField: React.FC<SpacingFieldProps> = ({
                 selectedSize === size
                   ? "bg-[#10ad1b]/5 border-[#10ad1b]"
                   : "border-black/30"
-              }`}
+              } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
               onClick={() => handleSizeChange(size)}
             >
               <p

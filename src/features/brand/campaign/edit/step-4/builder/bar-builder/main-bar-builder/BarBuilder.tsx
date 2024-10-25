@@ -40,13 +40,15 @@ interface BarBuilderProps {
     company: string;
     serializedTopbarState?: string;
     settingsTopbarState?: string;
+    
   };
   className?: string;
+  isDisabled: boolean;
 }
 
 const initialElements: ElementProps[] = [];
 
-const BarBuilder = forwardRef<unknown, BarBuilderProps>(({ campaign, className }, ref) => {
+const BarBuilder = forwardRef<unknown, BarBuilderProps>(({ campaign, className, isDisabled }, ref) => {
   const topBarPreviewRef = useRef<any>(null);
 
   const [desktopStepOneElements, setDesktopStepOneElements] =
@@ -330,6 +332,7 @@ const BarBuilder = forwardRef<unknown, BarBuilderProps>(({ campaign, className }
             setMobileConfigStep2={
               setMobileConfigStep2 as unknown as React.Dispatch<React.SetStateAction<PopupConfig>>
             }
+            disabled={isDisabled}
           />
           <SettingsPanel
             isOpen={isSettingsOpen}
@@ -341,6 +344,7 @@ const BarBuilder = forwardRef<unknown, BarBuilderProps>(({ campaign, className }
             setDesktopConfigStep2={setDesktopConfigStep2}
             setMobileConfigStep1={setMobileConfigStep1}
             setMobileConfigStep2={setMobileConfigStep2}
+            disabled={isDisabled}
           />
           <DragAndDropSection />
           <CustomizationPanel
@@ -356,10 +360,11 @@ const BarBuilder = forwardRef<unknown, BarBuilderProps>(({ campaign, className }
             }
             onUpdate={handleElementUpdate}
             onRemove={handleRemoveElement}
+            disabled={isDisabled}
           />
         </div>
         <div className="w-3/4 p-4">
-          <StepSelector step={previewStep} setStep={setPreviewStep} />
+          <StepSelector step={previewStep} setStep={setPreviewStep} disabled={isDisabled} />
           {/* Mobile view section */}
           {view === "mobile" && (
             <div

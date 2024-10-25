@@ -6,6 +6,7 @@ interface ColorFieldProps {
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
 const StyledColorInput = styled.input<{ colorvalue: string }>`
@@ -20,10 +21,11 @@ const StyledColorInput = styled.input<{ colorvalue: string }>`
     props.colorvalue === "#FFF"
       ? "1px solid #000"
       : "none"};
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")}; // Disable cursor if disabled
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  opacity: ${(props) => (props.disabled ? 0.5 : 1)}; // Lower opacity if disabled
 
   &::-webkit-color-swatch-wrapper {
     padding: 0;
@@ -41,6 +43,7 @@ const ColorField: React.FC<ColorFieldProps> = ({
   name,
   value,
   onChange,
+  disabled = false, // Set default value to false
 }) => {
   return (
     <div className="flex justify-between items-center self-stretch flex-grow-0 flex-shrink-0 relative">
@@ -54,6 +57,7 @@ const ColorField: React.FC<ColorFieldProps> = ({
             value={value}
             onChange={onChange}
             colorvalue={value} // Pass the color value as a prop
+            disabled={disabled}
           />
         </div>
       </div>

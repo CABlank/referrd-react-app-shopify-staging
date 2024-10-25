@@ -90,11 +90,11 @@ const CampaignStatusSelector: React.FC<CampaignStatusSelectorProps> = ({
   };
 
   const handleDropdownToggle = () => {
-    setIsDropdownOpen((prev) => !prev);
+      setIsDropdownOpen((prev) => !prev);
   };
 
   return (
-    <div className="relative items-center p-6 bg-white rounded-lg shadow-md w-full my-12 mb-48">
+    <div className={"relative items-center p-6 bg-white rounded-lg shadow-md w-full my-12 mb-48"}>
       <h2 className="flex text-xl font-semibold text-green-500 text-center mb-4 self-start">
         6. Campaign Status
       </h2>

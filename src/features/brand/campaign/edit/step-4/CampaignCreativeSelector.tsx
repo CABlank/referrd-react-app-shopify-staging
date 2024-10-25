@@ -24,7 +24,9 @@ const CampaignCreativeSelector: React.FC<{
   selectedSubFormat: "Popup" | "Bar";
   onSubFormatSelect: (subFormat: "Popup" | "Bar") => void;
   children?: React.ReactNode;
-}> = ({ className, selectedFormat, onSelect, selectedSubFormat, onSubFormatSelect, children }) => {
+  isDisabled: boolean;
+
+}> = ({ className, selectedFormat, onSelect, selectedSubFormat, onSubFormatSelect, children, isDisabled }) => {
   const [isOpen, setIsOpen] = useState(true);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -38,15 +40,17 @@ const CampaignCreativeSelector: React.FC<{
 
   // Function to handle setting the format and updating the attribute
   const handleSelectFormat = (format: string) => {
-    // Set a custom attribute on the body element
-    if (format === "Both" || format === "Popup") {
-      document.body.setAttribute("data-selected-format", format);
-    } else {
-      document.body.removeAttribute("data-selected-format");
-    }
+    if (!isDisabled) {
+      // Set a custom attribute on the body element
+      if (format === "Both" || format === "Popup") {
+        document.body.setAttribute("data-selected-format", format);
+      } else {
+        document.body.removeAttribute("data-selected-format");
+      }
 
-    // Call the onSelect callback
-    onSelect(format);
+      // Call the onSelect callback
+      onSelect(format);
+    }
   };
   // Use MutationObserver to monitor both "data-selected-format" and "data-current-substep"
   useEffect(() => {
@@ -132,7 +136,7 @@ const CampaignCreativeSelector: React.FC<{
               {/* Popup Option */}
               <div
                 className={`flex justify-center items-center flex-1 gap-8 p-8 rounded-lg border border-gray-300 cursor-pointer ${
-                  selectedFormat === "Popup" ? "border-green-500" : ""
+                  selectedFormat === "Popup" ? "border-green-500" : "border-gray-300"
                 }`}
                 onClick={() => handleSelectFormat("Popup")}
               >
@@ -155,7 +159,7 @@ const CampaignCreativeSelector: React.FC<{
               {/* Popup + Bar Option */}
               <div
                 className={`flex justify-center items-center flex-1 gap-8 p-8 rounded-lg border border-gray-300 cursor-pointer ${
-                  selectedFormat === "Both" ? "border-green-500" : ""
+                  selectedFormat === "Both" ? "border-green-500" : "border-gray-300"
                 }`}
                 onClick={() => handleSelectFormat("Both")}
               >
@@ -182,7 +186,7 @@ const CampaignCreativeSelector: React.FC<{
                 <button
                   className={`flex-1 p-4 rounded-lg border ${
                     selectedSubFormat === "Popup" ? "border-green-500" : "border-gray-300"
-                  }`}
+                  }${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
                   onClick={() => onSubFormatSelect("Popup")}
                 >
                   Configure Popup
@@ -190,7 +194,7 @@ const CampaignCreativeSelector: React.FC<{
                 <button
                   className={`flex-1 p-4 rounded-lg border ${
                     selectedSubFormat === "Bar" ? "border-green-500" : "border-gray-300"
-                  }`}
+                  }${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
                   onClick={() => onSubFormatSelect("Bar")}
                 >
                   Configure Bar

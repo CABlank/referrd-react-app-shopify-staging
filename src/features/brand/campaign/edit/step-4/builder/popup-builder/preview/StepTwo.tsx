@@ -20,6 +20,7 @@ interface StepTwoProps {
   view: "desktop" | "mobile";
   url: string;
   onClose: () => void;
+  disabled: boolean;
 }
 
 const styles = {
@@ -208,12 +209,14 @@ const StepTwo: React.FC<StepTwoProps> = ({
   onRemove,
   view,
   url,
+  disabled,
 }) => {
   const [copyText, setCopyText] = useState("Copy");
 
   const truncatedUrl = truncateUrl(url, 30);
 
   const handleCopyClick = () => {
+    if (disabled) return;
     navigator.clipboard
       .writeText(url)
       .then(() => {
@@ -246,10 +249,10 @@ const StepTwo: React.FC<StepTwoProps> = ({
           key={element.id}
           index={index}
           element={element}
-          moveElement={moveElement}
+          moveElement={disabled ? () => {} : moveElement}
           elementWidth={elementWidth}
           hoverIndex={hoverIndex}
-          onRemove={onRemove}
+          onRemove={disabled ? () => {} : onRemove}
           showRemoveButton={false}
           view={"desktop"}
           expandedId={undefined}
@@ -331,7 +334,7 @@ const StepTwo: React.FC<StepTwoProps> = ({
           boxShadow: "none",
         }}
       >
-        <button onClick={handleCopyClick} style={styles.copyButton}>
+        <button onClick={handleCopyClick} style={styles.copyButton} disabled={disabled} >
           {copyText}
         </button>
         <div id="domain" style={styles.urlContainer}>

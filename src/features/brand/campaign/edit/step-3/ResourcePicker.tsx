@@ -9,6 +9,7 @@ interface ResourcePickerProps {
   selectedResources: any[];
   accessToken: string;
   appliesTo?: string;
+  disabled: boolean;
 }
 
 const ResourcePicker: React.FC<ResourcePickerProps> = ({
@@ -18,6 +19,7 @@ const ResourcePicker: React.FC<ResourcePickerProps> = ({
   selectedResources,
   accessToken,
   appliesTo,
+  disabled,
 }) => {
   const [query, setQuery] = useState(initialQuery);
   const [resources, setResources] = useState<any[]>([]);
@@ -141,6 +143,7 @@ const ResourcePicker: React.FC<ResourcePickerProps> = ({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={`Search ${resourceType}s...`}
                 autoComplete="off"
+                disabled={disabled}
               />
             </div>
 

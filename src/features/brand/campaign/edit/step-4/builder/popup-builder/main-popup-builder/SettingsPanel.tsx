@@ -46,6 +46,7 @@ interface SettingsPanelProps {
     e: React.ChangeEvent<HTMLInputElement>,
     type: "height" | "width" | "borderWidth" | "backgroundColor" | "ImagePosition"
   ) => void;
+  disabled: boolean;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -54,6 +55,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   toggleSettings,
   handleConfigChange,
   handleValueChange,
+  disabled,
 }) => {
   const renderTextField = (label: string, name: keyof PopupConfig) => (
     <TextField
@@ -63,6 +65,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       value={config[name].replace("px", "")}
       onChange={(e) => handleValueChange(e as ChangeEvent<HTMLInputElement>, name)}
       isMeasurement={true}
+      disabled={disabled}
     />
   );
 
@@ -82,6 +85,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             name="backgroundColor"
             value={config.backgroundColor}
             onChange={handleConfigChange}
+            disabled={disabled}
           />
           <SelectField
             label="Image Position"
@@ -89,6 +93,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             value={config.ImagePosition}
             options={["None", "Left", "Right"]}
             onChange={handleConfigChange}
+            disabled={disabled}
           />
         </div>
       )}

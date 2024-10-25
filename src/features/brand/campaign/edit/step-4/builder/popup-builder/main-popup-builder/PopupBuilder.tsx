@@ -35,9 +35,10 @@ interface PopupBuilderProps {
     settingsPopupState?: string;
   };
   className?: string;
+  isDisabled: boolean;
 }
 
-const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campaign }, ref) => {
+const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campaign, isDisabled }, ref) => {
   const [view, setView] = useState<"desktop" | "mobile">("desktop");
   const [isSettingsOpen, setIsSettingsOpen] = useState(true);
   const [step, setStep] = useState(1);
@@ -351,6 +352,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
             setDesktopConfigStep2={setDesktopConfigStep2}
             setMobileConfigStep1={setMobileConfigStep1}
             setMobileConfigStep2={setMobileConfigStep2}
+            disabled={isDisabled}
           />
           <SettingsPanel
             isOpen={isSettingsOpen}
@@ -366,6 +368,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
             }
             handleConfigChange={handleConfigChange}
             handleValueChange={handleValueChange}
+            disabled={isDisabled}
           />
           <DragAndDropSection />
           <CustomizationPanel
@@ -383,10 +386,11 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
             onRemove={handleRemoveElement}
             imageRecentlyAdded={imageRecentlyAdded}
             setImageRecentlyAdded={setImageRecentlyAdded}
+            disabled={isDisabled}
           />
         </div>
         <div className="w-3/4 p-4">
-          <StepSelector step={step} setStep={setStep} />
+          <StepSelector step={step} setStep={setStep} disabled={isDisabled}/>
 
           <div className="mt-4 flex justify-center items-center bg-gray-100 border-2 border-gray-200 relative h-[580px]">
             <div
@@ -407,6 +411,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
                 onImageAdd={handleImageAdd}
                 setStep={setStep}
                 onElementsChange={compileHtmlDesktopStepOne}
+                disabled={isDisabled}
               />
             </div>
             <div
@@ -427,6 +432,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
                 onImageAdd={handleImageAdd}
                 setStep={setStep}
                 onElementsChange={compileHtmlDesktopStepTwo}
+                disabled={isDisabled}
               />
             </div>
             <div
@@ -447,6 +453,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
                 onImageAdd={handleImageAdd}
                 setStep={setStep}
                 onElementsChange={compileHtmlMobileStepOne}
+                disabled={isDisabled}
               />
             </div>
             <div
@@ -467,6 +474,7 @@ const PopupBuilder = forwardRef<unknown, PopupBuilderProps>(({ className, campai
                 onImageAdd={handleImageAdd}
                 setStep={setStep}
                 onElementsChange={compileHtmlMobileStepTwo}
+                disabled={isDisabled}
               />
             </div>
           </div>

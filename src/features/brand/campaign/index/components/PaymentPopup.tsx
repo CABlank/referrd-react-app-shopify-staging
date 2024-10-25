@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import CampaignPayment from "../../edit/step-5/CampaignPayment";
 import { Campaign } from "../../../../../services/campaign/campaign";
 
@@ -15,6 +15,12 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
   onPaymentSuccess,
   onClose,
 }) => {
+
+  const [isAmountConfirmed, setIsAmountConfirmed] = useState(false); // Track amount confirmation
+  const [isPaymentCompleted, setIsPaymentCompleted] = useState(false);
+
+  const [hasPaymentError, setHasPaymentError] = useState(false); // Track payment error
+
   if (!campaign) return null;
 
   return (
@@ -26,6 +32,9 @@ const PaymentPopup: React.FC<PaymentPopupProps> = ({
             token={token}
             amountFunded={campaign.amountFunded ?? 0}
             onPaymentSuccess={onPaymentSuccess}
+            setErrorState={setHasPaymentError}
+            setAmountConfirmedParent={setIsAmountConfirmed}
+            setPaymentCompletedParent={setIsPaymentCompleted}
           />
         </div>
         <div className="flex justify-end sticky bottom-0 bg-white py-2">

@@ -12,6 +12,7 @@ interface ViewSelectorProps {
   setDesktopConfigStep2: React.Dispatch<React.SetStateAction<PopupConfig>>;
   setMobileConfigStep1: React.Dispatch<React.SetStateAction<PopupConfig>>;
   setMobileConfigStep2: React.Dispatch<React.SetStateAction<PopupConfig>>;
+  disabled?: boolean;
 }
 
 const ViewSelector: React.FC<ViewSelectorProps> = ({
@@ -22,6 +23,7 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
   setDesktopConfigStep2,
   setMobileConfigStep1,
   setMobileConfigStep2,
+  disabled = false,
 }) => {
   const handleConfigChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -57,22 +59,22 @@ const ViewSelector: React.FC<ViewSelectorProps> = ({
       <p className="self-stretch flex-grow-0 flex-shrink-0 font-medium text-left">Select a View</p>
       <div className="flex justify-start items-center self-stretch flex-grow-0 flex-shrink-0 gap-4">
         <div
-          onClick={() => setView("desktop")}
+          onClick={() => !disabled && setView("desktop")} // Prevent click if disabled
           className={`flex flex-col justify-center items-center flex-grow-0 flex-shrink-0 h-8 w-[50px] relative overflow-hidden gap-2.5 px-0.5 py-[3px] rounded ${
             view === "desktop"
               ? "bg-[#10ad1b]/[0.15] border border-[#10ad1b]"
               : "border border-[#a8a8a8]"
-          } cursor-pointer`}
+          } cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : ""}`} 
         >
           <DesktopViewIcon selected={view === "desktop"} />
         </div>
         <div
-          onClick={() => setView("mobile")}
+          onClick={() => !disabled && setView("mobile")} // Prevent click if disabled
           className={`flex flex-col justify-center items-center flex-grow-0 flex-shrink-0 h-8 w-[50px] relative overflow-hidden gap-2.5 px-0.5 py-[3px] rounded ${
             view === "mobile"
               ? "bg-[#10ad1b]/[0.15] border border-[#10ad1b]"
               : "border border-[#a8a8a8]"
-          } cursor-pointer`}
+          } cursor-pointer ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <MobileViewIcon selected={view === "mobile"} />
         </div>

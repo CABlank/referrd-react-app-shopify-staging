@@ -17,6 +17,7 @@ interface CustomizationPanelProps {
   elements: ElementProps[];
   onUpdate: (updatedElement: ElementProps) => void;
   onRemove: (elementId: string) => void;
+  disabled: boolean;
 }
 
 type AllowedElementTypes = "text" | "button" | "input";
@@ -44,6 +45,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
   elements,
   onUpdate,
   onRemove,
+  disabled,
 }) => {
   const [openElementId, setOpenElementId] = useState<string | null>(null);
 
@@ -145,6 +147,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                           e.stopPropagation();
                           onRemove(element.id);
                         }}
+                        disabled={disabled}
                       >
                         <TrashIcon />
                       </button>
@@ -186,6 +189,7 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
                               : undefined
                           }
                           options={"options" in field ? field.options : undefined}
+                          disabled={disabled}
                         />
                       );
                     })}

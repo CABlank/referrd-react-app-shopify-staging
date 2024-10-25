@@ -7,9 +7,10 @@ interface ReferralDetailProps {
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => void;
+  isDisabled: boolean;
 }
 
-const ReferralDetail: React.FC<ReferralDetailProps> = ({ campaign, className, handleChange }) => {
+const ReferralDetail: React.FC<ReferralDetailProps> = ({ campaign, className, handleChange, isDisabled }) => {
   return (
     <div className={`bg-white p-4 shadow rounded-lg border border-gray-200 ${className}`}>
       <div className="space-y-6">
@@ -25,6 +26,7 @@ const ReferralDetail: React.FC<ReferralDetailProps> = ({ campaign, className, ha
               value={campaign.commissionType || ""}
               className="w-full h-10 px-4 py-2 border border-gray-300 bg-white text-gray-700 "
               onChange={handleChange}
+              disabled={isDisabled}
             >
               <option value="">Select one</option>
               <option value="Fix">Fix</option>
@@ -45,6 +47,7 @@ const ReferralDetail: React.FC<ReferralDetailProps> = ({ campaign, className, ha
                 placeholder="Commission"
                 className="flex-1 px-2 py-2 bg-transparent text-gray-700 border-0 focus:outline-none"
                 onChange={handleChange}
+                disabled={isDisabled}
               />
             </div>
           </div>
@@ -60,6 +63,7 @@ const ReferralDetail: React.FC<ReferralDetailProps> = ({ campaign, className, ha
             placeholder="Write terms"
             className="w-full h-[142px] px-4 py-4 rounded-lg bg-white border border-gray-300"
             onChange={handleChange}
+            disabled={isDisabled}
           ></textarea>
         </div>
 

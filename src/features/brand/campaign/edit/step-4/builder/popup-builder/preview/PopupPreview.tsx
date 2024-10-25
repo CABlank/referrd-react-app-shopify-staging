@@ -33,6 +33,7 @@ interface PopupPreviewProps {
   onImageAdd: () => void;
   setStep: React.Dispatch<React.SetStateAction<number>>;
   onElementsChange?: () => void; // Make the onElementsChange prop optional
+  disabled: boolean; 
 }
 
 const PopupPreview: React.FC<PopupPreviewProps> = ({
@@ -46,6 +47,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
   onImageAdd,
   setStep,
   onElementsChange = () => {}, // Provide a default empty function implementation
+  disabled,
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [imageRecentlyAdded, setImageRecentlyAdded] = useState(false);
@@ -94,13 +96,14 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
       ItemTypes.DIVIDER_ELEMENT,
     ],
     canDrop: (item: DragItem) => {
+      if (disabled) return false;  // Prevent drop if disabled
       return (
         item.type !== ItemTypes.IMAGE ||
         !imageExists(step === 1 ? stepOneElements : stepTwoElements)
       );
     },
     hover: (item: DragItem, monitor: DropTargetMonitor) => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || disabled) return;
 
       const hoverBoundingRect = containerRef.current.getBoundingClientRect();
       const clientOffset = monitor.getClientOffset();
@@ -117,6 +120,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
       setHoverIndex(newHoverIndex);
     },
     drop: (item: DragItem) => {
+      if (disabled) return;  // Prevent drop action if disabled
       if (
         item.type === ItemTypes.IMAGE &&
         imageExists(step === 1 ? stepOneElements : stepTwoElements)
@@ -224,6 +228,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
   }%`;
 
   const handleRemoveElement = (elementId: string) => {
+    if (disabled) return; // Prevent remove action if disabled
     if (step === 1) {
       setStepOneElements((prevElements) =>
         prevElements.filter((element) => element.id !== elementId)
@@ -267,6 +272,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          cursor: disabled ? "not-allowed" : "default", // Change cursor if disabled
         }}
       >
         <div
@@ -293,6 +299,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
                 view={view}
                 setUrl={setUrl}
                 setStep={setStep}
+                disabled={disabled}  // Pass disabled to StepOne
               />
             )}
             {step === 2 && (
@@ -308,6 +315,7 @@ const PopupPreview: React.FC<PopupPreviewProps> = ({
                 view={view}
                 url={url}
                 onClose={() => setStep(1)}
+                disabled={disabled}  // Pass disabled to StepTwo
               />
             )}
           </div>

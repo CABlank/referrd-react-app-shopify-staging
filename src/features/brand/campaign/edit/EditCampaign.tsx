@@ -61,7 +61,16 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
   const isDesktop = useIsDesktop();
   // Track current step and popup sub-step
   const [currentStep, setCurrentStep] = useState(1); // Track current step
+
+  const [isAmountConfirmed, setIsAmountConfirmed] = useState(false); // Track amount confirmation
+  const [isPaymentCompleted, setIsPaymentCompleted] = useState(false);
+
+  const [hasPaymentError, setHasPaymentError] = useState(false); // Track payment error
   const totalSteps = 6; // Total number of steps for the campaign creation process
+
+  const [isCampaignInfoValid, setIsCampaignInfoValid] = useState(false); 
+  const [isReferralInfoValid, setIsReferralInfoValid] = useState(false); 
+  const [isDiscountInfoValid, setIsDiscountInfoValid] = useState(false); 
 
   // Refs for scrolling to the correct section
   const campaignInformationRef = useRef<HTMLDivElement>(null);
@@ -72,6 +81,12 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
 
   // Handle moving to the next step
   const handleNextStep = () => {
+    // Verify if there's a payment error before proceeding
+    if (currentStep === 5 && hasPaymentError) {
+      console.error("Cannot proceed: Payment error detected.");
+      return; // No go if there's a payment error
+    }
+  
     // Move forward in the main steps
     setCurrentStep((prevStep) => Math.min(prevStep + 1, totalSteps));
   };
@@ -89,9 +104,13 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
 
       switch (currentStep) {
         case 1:
-        case 2:
-        case 3:
           element = campaignInformationRef.current;
+          break;
+        case 2:
+          element = campaignInformationRef.current;
+          break;
+        case 3:
+          element = campaignDiscountRef.current;
           break;
         case 4:
           element = campaignCreativeRef.current;
@@ -382,8 +401,9 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
               handleToggle={handleToggle}
               campaignData={campaignDataWithNonNullableUrl}
               handleChange={handleChange}
-              onValidationStatus={handleValidationStatus} // Pass validation status callback
+              onValidationStatus={setIsCampaignInfoValid} // Pass validation status callback
               currentStep={currentStep}
+              isDisabled={currentStep > 1}
             />
           </div>
 
@@ -392,7 +412,9 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
               campaignData={campaignDataWithNonNullableUrl}
               handleChange={handleChange}
               accessToken={session?.accessToken ?? accessToken ?? ""}
-              onValidationStatus={handleValidationStatus} // Pass validation status callback
+              onValidationStatus={setIsDiscountInfoValid} // Pass validation status callback
+              currentStep={currentStep}
+              isDisabled={currentStep > 3}
             />
           </div>
         </div>
@@ -408,7 +430,8 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
                   if (subFormat === "Popup" || subFormat === "Bar") {
                     setSelectedSubFormat(subFormat);
                   }
-                }} // Pass the updater function
+                }} // Pass the updater function for selectedSubFormat
+                isDisabled={currentStep > 4}
               >
                 {campaignData.format === "Both" ? (
                   selectedSubFormat === "Popup" ? (
@@ -417,10 +440,14 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
                         ref={popupBuilderRef}
                         campaign={campaignDataWithNonNullableUrl}
                         className="w-full bg-white shadow rounded-lg border border-gray-200"
+                        isDisabled={currentStep > 4} 
                       />
                       {/* Initialize barBuilderRef even if it's not rendered */}
                       <div style={{ display: "none" }}>
-                        <BarBuilder ref={barBuilderRef} campaign={campaignDataWithNonNullableUrl} />
+                        <BarBuilder 
+                        ref={barBuilderRef} 
+                        campaign={campaignDataWithNonNullableUrl} 
+                        isDisabled={currentStep > 4}  />
                       </div>
                     </>
                   ) : (
@@ -429,12 +456,14 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
                         ref={barBuilderRef}
                         campaign={campaignDataWithNonNullableUrl}
                         className="w-full bg-white shadow rounded-lg border border-gray-200"
+                        isDisabled={currentStep > 4}
                       />
                       {/* Initialize popupBuilderRef even if it's not rendered */}
                       <div style={{ display: "none" }}>
                         <PopupBuilder
                           ref={popupBuilderRef}
                           campaign={campaignDataWithNonNullableUrl}
+                          isDisabled={currentStep > 4}
                         />
                       </div>
                     </>
@@ -444,6 +473,7 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
                     ref={popupBuilderRef}
                     campaign={campaignDataWithNonNullableUrl}
                     className="w-full bg-white shadow rounded-lg border border-gray-200"
+                    isDisabled={currentStep > 4}
                   />
                 )}
               </CampaignCreativeSelector>
@@ -459,6 +489,10 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
             token={session?.accessToken ?? ""}
             amountFunded={campaignData.amountFunded || 0}
             onPaymentSuccess={handlePaymentSuccess}
+            isDisabled={currentStep > 5}
+            setErrorState={setHasPaymentError}
+            setAmountConfirmedParent={setIsAmountConfirmed}
+            setPaymentCompletedParent={setIsPaymentCompleted}
           />
         </div>
 
@@ -481,10 +515,18 @@ const EditCampaign: React.FC<CampaignEditProps> = ({ accessToken, refreshToken, 
           onPrevious={handlePreviousStep}
           onSaveDraft={handleSaveAsDraft} // Save as Draft
           onPublish={handlePublish} // Publish Live
-          isNextDisabled={isSaveDisabled && currentStep >= 3}
-          onClose={() => console.log("Close clicked")}
+          isNextDisabled={
+            (currentStep === 1 || currentStep === 2) && !isCampaignInfoValid || // Validation for steps 1 and 2
+            (currentStep === 3 && !isDiscountInfoValid) || // Validation for step 3
+            (currentStep === 5 && (!isAmountConfirmed || hasPaymentError /* || !isPaymentCompleted */)) // Desactivate the next button if the payment is not completed
+          }
           isPreviousDisabled={currentStep === 1}
           isVerifying={false}
+          step1Data={{
+            campaignName: campaignData?.name || "",
+            startDate: campaignData?.startDate || "",
+            endDate: campaignData?.closeDate || "",
+          }}
         />
       </main>
     </div>

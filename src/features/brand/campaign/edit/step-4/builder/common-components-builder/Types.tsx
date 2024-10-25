@@ -112,6 +112,7 @@ export interface FormFieldProps {
   options?: string[];
   style?: React.CSSProperties;
   onBatchChange?: (updatedValues: { [key: string]: string }) => void;
+  disabled?: boolean;
 }
 
 export const ItemTypes = {
