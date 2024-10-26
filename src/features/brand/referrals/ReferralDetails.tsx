@@ -7,7 +7,7 @@ import PerformanceSummary from "../../../components/common/PerformanceSummary";
 import DataTableRows from "../../../components/common/DataTableRows";
 import Pagination from "../../../components/common/Pagination";
 import ScrollableContainer from "../../../components/common/ScrollableContainer";
-import DetailSection from "./components/DetailSection"; // Make sure this component exists
+import DetailSection from "./components/DetailSection";
 import LoadingOverlay from "../../../components/common/LoadingOverlay";
 import useReferralDetails, { Customer, Campaign } from "./hooks/useReferralDetails";
 import Link from "next/link";

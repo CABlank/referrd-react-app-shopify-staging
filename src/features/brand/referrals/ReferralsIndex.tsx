@@ -10,7 +10,8 @@ import EyeIconDetail from "../../../components/icons/EyeIconDetail";
 import ScrollableContainer from "../../../components/common/ScrollableContainer";
 import LoadingOverlay from "../../../components/common/LoadingOverlay";
 import DataTableRows from "../../../components/common/DataTableRows";
-import useCustomers from "./hooks/useReferrals"; // Updated path to your hook
+
+import useCustomers from "./hooks/useReferrals";
 
 interface CustomerData {
   id: number;
@@ -48,24 +49,29 @@ const ReferralsIndex: React.FC<ReferralsIndexProps> = ({ accessToken, refreshTok
     userId,
   });
 
+  console.log("Data from useCustomers in ReferralsIndex:", { customers, campaigns, loading });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<keyof CustomerData>("date");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const mapCustomerData = (): CustomerData[] =>
-    customers.map((customer) => ({
+  const mapCustomerData = (): CustomerData[] => {
+    const mappedData = customers.map((customer) => ({
       id: customer.id,
       uuid: customer.uuid,
       date: new Date(customer.date_created).toLocaleString(),
       name: customer.name || "N/A",
-      campaign: campaigns.find((c) => c.uuid === customer.campaign_uuid)?.name || "N/A",
+      campaign: campaigns.find((c) => c.id === customer.campaign_uuid)?.name || "N/A",
       location: parseLocation(customer.location),
       signup_count: customer.signup_count,
       click_count: customer.click_count,
       conversion_count: customer.conversion_count,
-      spend: customer.conversion_count * 10, // Example spend calculation
+      spend: customer.conversion_count * 10,
     }));
+
+    return mappedData;
+  };
 
   const handleSearch = (query: string) => setSearchQuery(query);
   const handleSort = (order: string) => setSortOrder(order as keyof CustomerData);

@@ -78,14 +78,11 @@ const BrandInformationForm: React.FC<BrandInformationFormProps> = ({
         const { code, profileId } = event.data;
         // Handle the authorization code and profileId here
         // You can then store these in the state and use them for further API requests
-        console.log(`Authorization code: ${code}, Profile ID: ${profileId}`);
       }
     });
 
     if (popup) {
-      popup.onbeforeunload = function () {
-        console.log("Popup closed");
-      };
+      popup.onbeforeunload = function () {};
     }
   };
   return (

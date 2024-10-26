@@ -2,27 +2,49 @@ import { useState, useEffect, useRef } from "react";
 import {
   fetchCustomersByUuidReferral,
   fetchMainCustomerByUuidReferral,
+  fetchCampaignMetadataBatch,
+  CampaignMetadata
 } from "../../../../services/referrals/referrals";
 import { useSession } from "../../../../context/SessionContext";
 import { fetchUserData } from "../../../../services/auth/auth";
 
-interface Customer {
-  length: number;
-  id: number;
-  date_created: string;
-  uuid: string;
-  name: string;
-  email: string;
-  mobile: string;
-  referred_by: string;
-  conversion_count: number;
-  signup_count: number;
-  location: string;
-  click_count: number;
-  company_id: string;
-  campaign_uuid: string;
+// Define the Customer interface with precise types
+interface Location {
+  country?: string;
+  city?: string;
 }
 
+interface CompanyCampaignTracker {
+  companies: {
+    company_id: string;
+    campaigns: {
+      campaign_id: string;
+      discount_code: string | null;
+    }[];
+  }[];
+}
+
+interface Customer {
+  date: string | Date; // Simplified type to string | Date
+  id?: number;
+  uuid?: string;
+  name: string;
+  email: string;
+  mobile?: string;
+  referred_by?: string;
+  conversion_count: number;
+  click_count: number;
+  signup_count: number;
+  location?: Location | null;
+  company_id: object;
+  campaign_uuid?: string;
+  discountCode?: string;
+  commissionTotal?: number;
+  campaignName?: string;
+  company_campaign_tracker: CompanyCampaignTracker;
+}
+
+// State type for useCustomers hook
 interface CustomerState {
   customers: Customer[];
   mainCustomerData: Customer[];
@@ -55,38 +77,76 @@ const useCustomers = ({
         loadExecutedRef.current = true;
 
         try {
-          // First, use withTokenRefresh to fetch the customer UUID securely
           const customerUUID = await withTokenRefresh(
             async (token) => {
-              // Fetch the customer data using the current or refreshed token
               const userData = await fetchUserData(token);
               return userData;
             },
-            refreshToken, // If needed, provide a refresh token here
-            userId // User ID to help identify which token to refresh, if required
+            refreshToken,
+            userId
           );
 
           if (customerUUID?.uuid) {
             const [customersData, mainCustomerResponse] = await Promise.all([
               withTokenRefresh(
-                (token) =>
-                  fetchCustomersByUuidReferral(token, customerUUID.uuid),
+                (token) => fetchCustomersByUuidReferral(token, customerUUID.uuid),
                 refreshToken,
                 userId
               ),
               withTokenRefresh(
-                (token) =>
-                  fetchMainCustomerByUuidReferral(token, customerUUID.uuid),
+                (token) => fetchMainCustomerByUuidReferral(token, customerUUID.uuid),
                 refreshToken,
                 userId
               ),
             ]);
 
-            const mainCustomerData = mainCustomerResponse || null; // Extract the first customer object
+            const campaignUUIDs = Array.from(
+              new Set(
+                customersData.flatMap((customer: Customer) => {
+                  return customer.company_campaign_tracker?.companies.flatMap((company) =>
+                    company.campaigns.map((campaign) => campaign.campaign_id)
+                  );
+                }).filter(Boolean)
+              )
+            );
+
+            const campaignsMetadata = await withTokenRefresh(
+              (token) => fetchCampaignMetadataBatch(campaignUUIDs as string[], token),
+              refreshToken,
+              userId
+            );
+
+            const campaignMap = campaignsMetadata.reduce((acc: Record<string, CampaignMetadata>, campaign: CampaignMetadata) => {
+              acc[campaign.campaign_uuid] = campaign;
+              return acc;
+            }, {});
+
+            const enhancedCustomers = customersData.map((customer: Customer) => {
+              const campaignUUID = customer.company_campaign_tracker?.companies[0]?.campaigns[0]?.campaign_id;
+              const campaignData = campaignMap[campaignUUID];
+
+              if (campaignData) {
+                const commissionTotal = campaignData.commission;
+
+                return {
+                  ...customer,
+                  campaign_uuid: campaignUUID,
+                  campaignName: campaignData.name,
+                  commissionTotal,
+                };
+              }
+
+              return {
+                ...customer,
+                campaign_uuid: campaignUUID,
+                campaignName: "N/A",
+                commissionTotal: 0,
+              };
+            });
 
             setState({
-              customers: customersData || [],
-              mainCustomerData, // Set main customer object
+              customers: enhancedCustomers,
+              mainCustomerData: mainCustomerResponse || [],
               loading: false,
               error: null,
             });
@@ -99,8 +159,7 @@ const useCustomers = ({
             customers: [],
             mainCustomerData: [],
             loading: false,
-            error:
-              "Failed to fetch customers or main customer data. Please try again.",
+            error: "Failed to fetch customers or main customer data. Please try again.",
           });
         }
       }

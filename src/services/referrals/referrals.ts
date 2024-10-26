@@ -29,6 +29,14 @@ export interface Customer {
   };
 }
 
+export interface CampaignMetadata {
+  name: any;
+  campaign_uuid: string;
+  commission: number;
+  commissionType: string;
+}
+
+
 export interface Company {
   id?: number;
   name: string;
@@ -141,3 +149,41 @@ export const fetchCampaigns = (token: string): Promise<Campaign[]> =>
 // Fetch a specific campaign by ID
 export const fetchCampaign = (id: number, token: string): Promise<Campaign> =>
   fetchFromAPI<Campaign>(`/items/campaigns/${id}`, token);
+
+
+
+export const fetchReferrerBatch = async (
+  referralUUIDs: string[],
+  token: string
+): Promise<Customer[]> => {
+  try {
+    const queryParams = referralUUIDs.map(uuid => `filter[uuid][_in]=${uuid}`).join("&");
+    const referrers = await fetchFromAPI<Customer[]>(
+      `/items/customers?${queryParams}`,
+      token
+    );
+
+    return referrers || [];
+  } catch (error) {
+    console.error("Error fetching referrer data in batch:", error);
+    throw error;
+  }
+};
+
+export const fetchCampaignMetadataBatch = async (
+  campaignUUIDs: string[],
+  token: string
+): Promise<CampaignMetadata[]> => {
+  try {
+    const queryParams = campaignUUIDs.map(uuid => `filter[campaign_uuid][_in]=${uuid}`).join("&");
+    const campaigns = await fetchFromAPI<CampaignMetadata[]>(
+      `/items/campaign_metadata?${queryParams}`,
+      token
+    );
+
+    return campaigns || [];
+  } catch (error) {
+    console.error("Error fetching campaign metadata in batch:", error);
+    throw error;
+  }
+};

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import {
   fetchCompanyUUID,
   fetchPaymentsByReferralUUID,
-  fetchReferrer,
-  fetchCampaignMetadata,
+  fetchReferrerBatch,
+  fetchCampaignMetadataBatch,
   updatePaymentStatus,
 } from "../../../../services/payments/payments";
 import { useSession } from "../../../../context/SessionContext";
@@ -19,9 +19,6 @@ export const usePayments = (
   const [payments, setPayments] = useState<MappedPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [buttonClicked, setButtonClicked] = useState<
-    "Approved" | "Declined" | null
-  >(null);
   const [selectedPayments, setSelectedPayments] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const loadExecutedRef = useRef(false);
@@ -33,84 +30,86 @@ export const usePayments = (
         loadExecutedRef.current = true;
 
         try {
-          // First, fetch the customer UUID securely
+          // Fetch the customer UUID securely
           const customerUUID = await withTokenRefresh(
             async (token) => {
               const userData = await fetchUserData(token);
-              return userData;
+              return userData?.uuid;
             },
             refreshToken,
             userId
           );
 
-
-
-          if (customerUUID?.uuid) {
+          if (customerUUID) {
+            // Fetch payments by referral UUID
             const paymentsData = await withTokenRefresh(
-              (token) => fetchPaymentsByReferralUUID(customerUUID?.uuid, token),
+              (token) => fetchPaymentsByReferralUUID(customerUUID, token),
               refreshToken,
               userId
             );
 
             if (paymentsData) {
-              const mappedPayments = await Promise.all(
-                paymentsData.map(
-                  async (payment: {
-                    referral_uuid: string;
-                    campaign_uuid: string;
-                    total_price: string;
-                    date_created: string | number | Date;
-                    order_number: any;
-                  }) => {
-                    // Fetch referrer details if referral_uuid exists
-                    const referrer = payment.referral_uuid
-                      ? await withTokenRefresh(
-                        (token) => fetchReferrer(payment.referral_uuid, token),
-                        refreshToken,
-                        userId
-                      )
-                      : null;
-
-                    // Fetch campaign metadata if campaign_uuid exists
-                    const campaign = payment.campaign_uuid
-                      ? await withTokenRefresh(
-                        (token) =>
-                          fetchCampaignMetadata(payment.campaign_uuid, token),
-                        refreshToken,
-                        userId
-                      )
-                      : null;
-
-
-
-                    const referrerName =
-                      referrer?.name || referrer?.email || "N/A";
-                    const campaignName = campaign ? campaign.name : "N/A";
-
-                    // Calculate referral fee based on the campaign's commission type and amount
-                    const referralFee = campaign
-                      ? calculateReferralFee(
-                        payment.total_price,
-                        campaign.commission,
-                        campaign.commissionType
-                      )
-                      : 0;
-
-                    return {
-                      ...payment,
-                      referrer: referrerName,
-                      campaign: campaignName,
-                      referralCashback: referralFee, // referral cashback added here
-                      date: new Date(payment.date_created).toLocaleString(),
-                      order: `#${payment.order_number}`,
-                    };
-                  }
-                )
+              // Collect unique referral and campaign UUIDs for batch fetching
+              const referralUUIDs: string[] = Array.from(
+                new Set(paymentsData.map((p: { referral_uuid: string }) => p.referral_uuid).filter(Boolean))
               );
+              const campaignUUIDs: string[] = Array.from(
+                new Set(paymentsData.map((p: { campaign_uuid: string }) => p.campaign_uuid).filter(Boolean))
+              );
+
+              // Fetch referrers and campaigns in batch
+              const [referrers, campaigns] = await Promise.all([
+                withTokenRefresh(
+                  (token) => fetchReferrerBatch(referralUUIDs, token),
+                  refreshToken,
+                  userId
+                ),
+                withTokenRefresh(
+                  (token) => fetchCampaignMetadataBatch(campaignUUIDs, token),
+                  refreshToken,
+                  userId
+                )
+              ]);
+
+              // Create lookup maps for referrers and campaigns
+              const referrerMap = Object.fromEntries(referrers.map((ref: { uuid: string; name: string; email: string }) => [ref.uuid, ref]));
+              const campaignMap = Object.fromEntries(campaigns.map((camp: { campaign_uuid: string; name: string; commission: number; commissionType: string }) => [camp.campaign_uuid, camp]));
+
+              // Map payments with referrer and campaign data
+              const mappedPayments = paymentsData.map((payment: {
+                referral_uuid: string;
+                campaign_uuid: string;
+                total_price: string;
+                date_created: string | number | Date;
+                order_number: any;
+              }) => {
+                const referrer = referrerMap[payment.referral_uuid] || {};
+                const campaign = campaignMap[payment.campaign_uuid] || {};
+
+                const referrerName = referrer.name || referrer.email || "N/A";
+                const campaignName = campaign.name || "N/A";
+                const referralFee = campaign ? calculateReferralFee(
+                  payment.total_price,
+                  campaign.commission,
+                  campaign.commissionType
+                ) : 0;
+
+                return {
+                  ...payment,
+                  referrer: referrerName,
+                  campaign: campaignName,
+                  referralCashback: referralFee,
+                  date: new Date(payment.date_created).toLocaleString(),
+                  order: `#${payment.order_number}`,
+                };
+              });
+
               setPayments(mappedPayments);
+            } else {
+              setError("No payments found.");
             }
           } else {
-            setError("Failed to load company UUID.");
+            setError("Failed to load customer UUID.");
           }
         } catch (err) {
           console.error("Error loading data:", err);
@@ -126,14 +125,20 @@ export const usePayments = (
 
   const calculateReferralFee = (
     totalPrice: string,
-    commission: number,
-    commissionType: string
+    commission: number | undefined,
+    commissionType: string | undefined
   ): number => {
     const parsedTotalPrice = parseFloat(totalPrice);
 
     if (isNaN(parsedTotalPrice)) {
       console.error("Error: Invalid total price:", totalPrice);
-      return 0; // Return 0 if the total price is not a valid number
+      return 0;
+    }
+
+    // Only proceed if commission and commissionType are defined
+    if (commission === undefined || commissionType === undefined) {
+      console.warn("Warning: Missing commission or commissionType. Returning 0.");
+      return 0;
     }
 
     if (commissionType === "Fix") {
@@ -141,76 +146,16 @@ export const usePayments = (
     } else if (commissionType === "Percentage") {
       return (parsedTotalPrice * commission) / 100;
     }
+
     console.error("Error: Unknown commission type:", commissionType);
-    return 0; // Return 0 if the commission type is invalid
+    return 0;
   };
 
-  const handlePaymentAction = async (
-    paymentId: number,
-    action: "Approved" | "Declined"
-  ) => {
-    setLoading(true);
-    try {
-      await withTokenRefresh(
-        (token) => updatePaymentStatus(paymentId, action, token),
-        refreshToken,
-        userId
-      );
-      setPayments((prevPayments) =>
-        prevPayments.map((payment) =>
-          payment.id === paymentId ? { ...payment, status: action } : payment
-        )
-      );
-    } catch (err) {
-      console.error("Error processing payment action:", err);
-      setError("Failed to process payment action. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBulkAction = async (action: "Approved" | "Declined") => {
-    if (selectedPayments.length > 0) {
-      setLoading(true);
-      setButtonClicked(action);
-      try {
-        await withTokenRefresh(
-          (token) =>
-            Promise.all(
-              selectedPayments.map((paymentId) =>
-                updatePaymentStatus(paymentId, action, token)
-              )
-            ),
-          refreshToken,
-          userId
-        );
-        setPayments((prevPayments) =>
-          prevPayments.map((payment) =>
-            selectedPayments.includes(payment.id ?? 0)
-              ? { ...payment, status: action }
-              : payment
-          )
-        );
-        setSelectedPayments([]); // Clear selected payments
-        setSelectAll(false); // Reset select all state
-      } catch (err) {
-        console.error("Error processing bulk payment action:", err);
-        setError("Failed to process bulk payment action. Please try again.");
-      } finally {
-        setLoading(false);
-        setTimeout(() => {
-          setButtonClicked(null);
-        }, 3000); // Reset buttonClicked after 3 seconds
-      }
-    }
-  };
 
   return {
     payments,
     loading,
     error,
-    handlePaymentAction,
-    handleBulkAction,
     selectedPayments,
     setSelectedPayments,
     selectAll,

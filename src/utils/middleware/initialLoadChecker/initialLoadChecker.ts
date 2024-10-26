@@ -106,10 +106,7 @@ const handleTokenRefresh = async (
   const accessToken = directusTokens.accessToken;
   const refreshToken = directusTokens.refreshToken;
 
-
-
   const sessionAccessTokenExpiresAt = getSessionExpirationTime();
-  console.log(sessionAccessTokenExpiresAt);
 
   await storeTokensInDatabase(
     userId,

@@ -103,7 +103,6 @@ export const createCustomer = async (
     if (customers && customers.length > 0) {
       // Customer exists
       const existingCustomer = customers[0];
-      console.log("Customer already exists:", existingCustomer);
 
       // Retrieve or initialize the company_campaign_tracker
       let tracker = existingCustomer.company_campaign_tracker || { companies: [] };
@@ -115,7 +114,6 @@ export const createCustomer = async (
 
       if (companyIndex === -1 && newCompanyId) {
         // Company doesn't exist, and newCompanyId is valid, add it with the new campaign
-        console.log(`Adding new company ${newCompanyId} with campaign ${newCampaignId}`);
         if (newCampaignId) {
           tracker.companies.push({
             company_id: newCompanyId,
@@ -131,21 +129,18 @@ export const createCustomer = async (
         }
       } else if (companyIndex !== -1) {
         // Company exists, check if the campaign exists
-        console.log(`Company ${newCompanyId} exists, checking campaigns...`);
         let campaignIndex = tracker.companies[companyIndex].campaigns.findIndex(
           (campaign) => campaign.campaign_id === newCampaignId
         );
 
         if (campaignIndex === -1 && newCampaignId) {
           // Campaign doesn't exist, and newCampaignId is valid, add it
-          console.log(`Adding new campaign ${newCampaignId} to company ${newCompanyId}`);
           tracker.companies[companyIndex].campaigns.push({
             campaign_id: newCampaignId,
             discount_code: discountCode ?? null,
           });
         } else if (campaignIndex !== -1) {
           // Campaign already exists
-          console.log(`Campaign ${newCampaignId} already exists for company ${newCompanyId}`);
         } else {
           console.error("Cannot add campaign, newCampaignId is undefined or invalid.");
         }
@@ -169,12 +164,10 @@ export const createCustomer = async (
         throw new Error("Failed to update customer with new company and campaign.");
       }
 
-      console.log("Customer updated successfully:", updatedCustomer);
       return updatedCustomer;
     }
 
     // Customer does not exist, create a new one
-    console.log("Creating a new customer...");
     if (newCompanyId && newCampaignId) {
       const createdCustomer = await fetchFromAPI<Customer | null>(
         "/items/customers",
@@ -204,7 +197,6 @@ export const createCustomer = async (
         throw new Error("Customer creation failed, no data returned.");
       }
 
-      console.log("Customer created successfully:", createdCustomer);
       return createdCustomer;
     } else {
       throw new Error("Cannot create customer without a valid company and campaign ID.");

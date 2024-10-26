@@ -57,9 +57,8 @@ export async function handleReferral(
           })
           .find(campaign => campaign.campaign_id === campaignData.campaign_uuid)?.discount_code;
 
-        // Log the retrieved discount code
-        console.log("campaign_id", campaignData.campaign_uuid);
-        console.log("discountCode", discountCode);
+
+
 
         // If a discount code already exists in the referral record, return it
         if (discountCode) {

@@ -64,7 +64,6 @@ export function generatePopupScriptContent(
         // Save in localStorage that the popup has been dismissed
         localStorage.setItem('popupDismissed', 'true');
 
-        console.log('Popup dismissed');
     });
 
     popupElement.appendChild(closeButton);
@@ -180,7 +179,6 @@ if (${discountCode ? `'${discountCode}'` : null}) {
             });
 
 
-            console.log('campaignData.allowDiscounts', campaignData)
             // Add campaign-specific data to formData
                  formData.campaign_uuid = campaignData.campaign_uuid;
           formData.company_id = campaignData.company_id;

@@ -36,8 +36,7 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
   const graphqlUrl = `https://${shopDomain}/admin/api/2024-10/graphql.json`;
   const TOKEN = process.env.TOKEN;  // Store your API token securely
 
-  console.log("Starting discount code creation process...");
-  console.log("Campaign Data:", JSON.stringify(formData, null, 2));
+
 
   try {
     // Step 1: Fetch users from the external API to identify the user
@@ -64,7 +63,6 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
       return false;
     });
 
-    console.log("Matched users based on domain:", JSON.stringify(matchedUsers, null, 2));
 
     if (matchedUsers.length === 0) {
       console.error(`No users found for the domain: ${shopDomain}`);
@@ -79,7 +77,6 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
       return null;
     }
 
-    console.log("User with Shopify token:", JSON.stringify(userWithShopifyToken, null, 2));
 
     // Step 5: Create a new discount code if none exists
     const discountType = formData.discountType || "percentage";
@@ -88,7 +85,6 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
     const discountAppliesToAll = selectedItems.length === 0;
     const productsToApply = selectedItems.map((item: any) => `gid://shopify/Product/${item.id}`);
 
-    console.log("Selected items for discount:", JSON.stringify(selectedItems, null, 2));
 
     // Correct discount value object based on the discount type
     const discountValueObject = discountType === "percentage"
@@ -151,7 +147,6 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
       }
     );
 
-    console.log("Discount creation response:", JSON.stringify(createDiscountResponse.data, null, 2));
 
     const userErrors = createDiscountResponse.data?.data?.discountCodeBasicCreate?.userErrors;
 
@@ -167,7 +162,6 @@ async function handleDiscountCode(referralUUID: string, formData: any, shopDomai
       return null;
     }
 
-    console.log("New discount code created:", newDiscountCode);
 
     // Update the referral record with the new discount code
     await updateReferralDiscountCode(referralUUID, formData.campaign_uuid, newDiscountCode, BOT_TOKEN);
@@ -197,7 +191,6 @@ export default async function handler(
 
   const formData = req.body;
 
-  console.log("Received form data:", formData);
 
   if (!formData.name || !formData.email) {
     return res.status(400).json({
@@ -214,7 +207,6 @@ export default async function handler(
     console.error("Failed to parse metadata:", error);
   }
 
-  console.log("Parsed metadata:", JSON.stringify(metadatasubmit, null, 2));
 
   let metadata;
   try {
@@ -244,7 +236,6 @@ export default async function handler(
       (domain) => originHostname === domain
     );
 
-    console.log("Matched domain:", matchedDomain);
 
     if (!matchedDomain) {
       return res.status(403).json({
@@ -270,7 +261,6 @@ export default async function handler(
 
     const locationData = location.country || location.city ? location : null;
 
-    console.log("Location data:", JSON.stringify(locationData, null, 2));
 
     const newCustomer = {
       name: formData.name || "",
@@ -296,7 +286,6 @@ export default async function handler(
       },
     };
 
-    console.log("New customer data:", JSON.stringify(newCustomer, null, 2));
 
     const createdCustomer = await createCustomer(
       newCustomer,
@@ -313,9 +302,7 @@ export default async function handler(
 
     const generatedUrl = `${origin}?referrd?-${customerUUID}&${encodeURIComponent(nameSlug)}`;
 
-    console.log("Generated URL:", generatedUrl);
 
-    console.log("campaignData.allowDiscounts", formData.allowDiscounts);
     // Handle discount code creation
     if (formData.allowDiscounts) {
       const discountCode = await handleDiscountCode(
@@ -327,7 +314,6 @@ export default async function handler(
 
       if (discountCode) {
         newCustomer.company_campaign_tracker.companies[0].campaigns[0].discount_code = discountCode;
-        console.log("Discount code updated in customer tracker:", discountCode);
       }
     }
 
@@ -338,12 +324,10 @@ export default async function handler(
     });
 
     if (metadatasubmit && metadatasubmit.referrer) {
-      console.log("Referrer found in metadata:", metadatasubmit.referrer);
-      console.log("customerUUID:", customerUUID);
+
       try {
         if (createdCustomer.uuid != metadata.referrer) {
           await registerSignup(metadatasubmit.referrer, createdCustomer, BOT_TOKEN);
-          console.log("Signup successfully registered.");
         }
       } catch (error) {
         console.error("Error registering signup:", error);

@@ -20,9 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // 2. Fetch the Shopify store domain (shop name) from your company service using the provided accessToken
         const shopDomain = await fetchCompanyUrl(accessToken as string);  // Fetch the shop domain (company's URL)
 
-        console.log("url", `https://${shopDomain}/admin/api/${API_VERSION}/collection_listings.json`)
-
-        console.log("offlineToken", offlineToken)
         // 3. Use the offline token and shop domain to fetch collection_listings from Shopify Admin API
         const response = await axios.get(`https://${shopDomain}/admin/api/${API_VERSION}/custom_collections.json`, {
             headers: {

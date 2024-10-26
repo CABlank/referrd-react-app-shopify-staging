@@ -19,6 +19,8 @@ interface CustomerData {
   click_count: number;
   conversion_count: number;
   spend: number;
+  campaignName?: string;
+  commissionTotal?: number;
 }
 
 interface ReferralsIndexProps {
@@ -49,18 +51,24 @@ const ReferralsIndex: React.FC<ReferralsIndexProps> = ({ accessToken, refreshTok
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const mapCustomerData = (): CustomerData[] =>
-    customers.map((customer) => ({
-      id: customer.id,
-      uuid: customer.uuid,
-      date: new Date(customer.date_created).toLocaleString(),
+  const mapCustomerData = (): CustomerData[] => {
+    const totalConversions = mainCustomerData?.[0]?.conversion_count || 1;
+
+    return customers.map((customer) => ({
+      id: customer.id ?? 0,
+      uuid: customer.uuid ?? "",
+      date: new Date(customer.date).toLocaleString(),
       name: "User", // Replace the name with "User"
-      location: parseLocation(customer.location),
+      location:
+        typeof customer.location === "string" ? parseLocation(customer.location) : "Unknown",
       signup_count: customer.signup_count,
       click_count: customer.click_count,
       conversion_count: customer.conversion_count,
-      spend: customer.conversion_count * 10, // Example spend calculation
+      spend: customer.commissionTotal || 0, // Example spend calculation based on commission
+      campaignName: customer.campaignName || "N/A", // Include campaign name
+      commissionTotal: (customer.commissionTotal ?? 0) * totalConversions, // Corrected commission calculation
     }));
+  };
 
   const handleSearch = (query: string) => setSearchQuery(query);
   const handleSort = (order: string) => setSortOrder(order as keyof CustomerData);
@@ -84,10 +92,8 @@ const ReferralsIndex: React.FC<ReferralsIndexProps> = ({ accessToken, refreshTok
   );
 
   const computePerformanceMetrics = () => {
-    // Access the first element of the mainCustomerData array
     const customer = mainCustomerData && mainCustomerData.length > 0 ? mainCustomerData[0] : null;
 
-    // Ensure customer is not null and has the properties
     const totalSignups = customer?.signup_count || 0;
     const totalClicks = customer?.click_count || 0;
     const totalConversions = customer?.conversion_count || 0;
@@ -107,11 +113,13 @@ const ReferralsIndex: React.FC<ReferralsIndexProps> = ({ accessToken, refreshTok
 
   const metrics = computePerformanceMetrics();
 
-  // Updated columns with "User" in place of names
+  // Updated columns with campaign name and commission total
   const columns = [
     { dataIndex: "date", className: "text-center text-xs", title: "Date" },
     { dataIndex: "name", className: "text-center", title: "User" },
     { dataIndex: "location", className: "text-center", title: "Location" },
+    { dataIndex: "campaignName", className: "text-center", title: "Campaign Name" },
+    { dataIndex: "commissionTotal", className: "text-center", title: "Total Amount" },
   ];
 
   return (

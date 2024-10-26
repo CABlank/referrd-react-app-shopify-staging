@@ -146,8 +146,6 @@ const SharesIndex: React.FC<SharesIndexProps> = ({ accessToken, refreshToken, us
         <p>Loading...</p>
       ) : (
         customers.flatMap((customer) => {
-          console.log("Processing customer:", customer.uuid); // Log the customer being processed
-
           // Flatten the companies array before using .find()
           const flattenedCompanies = companies.flat(); // Flatten array of arrays into a flat array
 
@@ -157,12 +155,9 @@ const SharesIndex: React.FC<SharesIndexProps> = ({ accessToken, refreshToken, us
               const company = flattenedCompanies.find(
                 (comp) => comp.UUID === companyData.company_id
               );
-              console.log("Company data for customer:", companyData.company_id, company); // Log the company data
               return company;
             })
             .filter((company) => company !== undefined);
-
-          console.log("Companies found for customer:", customerCompanies); // Log the customerCompanies array
 
           // Render customerCompanies for each customer
           return customerCompanies.map((company) => {
@@ -170,8 +165,6 @@ const SharesIndex: React.FC<SharesIndexProps> = ({ accessToken, refreshToken, us
 
             const referralUrl = `https://${company.domain}?referrd-${customer.uuid}`;
             const key = `${customer.uuid}-${company.UUID}`;
-
-            console.log("Rendering referral URL:", referralUrl); // Log the referral URL
 
             return (
               <div
